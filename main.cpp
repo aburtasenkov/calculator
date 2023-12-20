@@ -48,11 +48,9 @@ bool conj(string word) {
 bool sentence() {
 	// return true if input is a legit sentence
 	string word = ts.get();
-	cout << word << "\n";
 	if (noun(word))
 	{
 		word = ts.get();
-		cout << word << "\n";
 		if (verb(word)) return true;
 	}
 	else if (conj(word)) {
