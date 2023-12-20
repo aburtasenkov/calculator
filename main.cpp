@@ -30,35 +30,33 @@ Token_stream ts;
 bool noun(string word) {
 	// return true if word is a noun
 	if (word == "birds" || word == "fish" || word == "C++") return true;
-	ts.putback(word);
 	return false;
 }
 
 bool verb(string word) {
 	// return true if word is a verb
 	if (word == "rules" || word == "fly" || word == "swim") return true;
-	ts.putback(word);
 	return false;
 }
 
 bool conj(string word) {
 	// return true if word is a conjunction
 	if (word == "and" || word == "or" || word == "but") return true;
-	ts.putback(word);
 	return false;
 }
 
 bool sentence() {
 	// return true if input is a legit sentence
 	string word = ts.get();
+	cout << word << "\n";
 	if (noun(word))
 	{
 		word = ts.get();
+		cout << word << "\n";
 		if (verb(word)) return true;
-		return false;
 	}
 	else if (conj(word)) {
-		return sentence();
+		if (sentence()) return true;
 	}
 	return false;
 }
