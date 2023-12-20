@@ -65,8 +65,7 @@ int main()
 try {
 	string word = "";
 	while (cin) {
-		bool b = sentence();
-		if (b) cout << "OK\n";
+		if (sentence()) cout << "OK\n";
 		else cout << "Not OK\n";
 	}
 	return 0;
