@@ -28,8 +28,13 @@ void Token_stream::putback(string word) {
 Token_stream ts;
 
 bool noun(string word) {
-	// return true if word is a noun
+	// return true if word is a noun or "the" + noun
 	if (word == "birds" || word == "fish" || word == "C++") return true;
+	else if (word == "the") {
+		word = ts.get();
+		if (word == "birds" || word == "fish" || word == "C++") return true;
+		ts.putback(word);
+	}
 	return false;
 }
 
