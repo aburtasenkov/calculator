@@ -58,9 +58,6 @@ bool sentence() {
 		word = ts.get();
 		if (verb(word)) return true;
 	}
-	else if (conj(word)) {
-		if (sentence()) return true;
-	}
 	return false;
 }
 
