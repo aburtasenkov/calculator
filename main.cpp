@@ -14,8 +14,8 @@ string Token_stream::get() {
 		full = false;
 		return buffer;
 	}
-	string word;
-	cin >> word;
+	string word = "";
+	if (cin) cin >> word;
 	return word;
 }
 
