@@ -70,6 +70,7 @@ const char name = 'a';
 const char square_root = '?';
 const char power = '&';
 const char constant = 'C';
+const char help = 'H';
 
 Token Token_stream::get()
 {
@@ -96,11 +97,15 @@ Token Token_stream::get()
 			while (cin.get(ch) && (isalpha(ch) || isdigit(ch) || ch =='_')) s += ch;
 			cin.unget();
 			if (s == "let") return Token(let);
-			if (s == "quit") return Token(name);
+			if (s == "quit") return Token(quit);
 			if (s == "sqrt") return Token(square_root);
 			if (s == "pow") return Token(power);
 			if (s == "const") return Token(constant);
+			if (s == "H" || s == "h") return Token(help);
 			return Token(name, s);
+		}
+		if (isspace(ch)) {
+			if (ch == '\n') return Token(print);
 		}
 		error("Bad token");
 	}
@@ -338,8 +343,13 @@ void calculate()
 		Token t = ts.get();
 		while (t.kind == print) t = ts.get();
 		if (t.kind == quit) return;
-		ts.unget(t);
-		cout << result << statement() << endl;
+		if (t.kind == help) cout << "This is me, calculator!\n"
+			<< "I can read these operators:\t+\t-\t/\t*\t(\t)\n"
+			<< "I can execute these functions: pow(x,i)\tsqrt(x)\n";
+		else {
+			ts.unget(t);
+			cout << result << statement() << endl;
+		}
 	}
 	catch (runtime_error& e) {
 		cerr << e.what() << endl;
