@@ -144,9 +144,9 @@ public:
 
 class Symbol_table {
 public:
-	double get_value(string s);
+	double get(string s);
+	void set(string s, double d);
 	void define_name(string name, double value, bool constant = false);
-	void set_value(string s, double d);
 	bool is_declared(string s);
 	bool is_constant(string s);
 
@@ -154,7 +154,7 @@ private:
 	vector<Variable> var_table;
 };
 
-double Symbol_table::get_value(string s) 
+double Symbol_table::get(string s) 
 // return value of an existing variable
 {
 	for (int i = 0; i < var_table.size(); ++i)
@@ -162,15 +162,7 @@ double Symbol_table::get_value(string s)
 	error("get: undefined name ", s);
 }
 
-void Symbol_table::define_name(string name, double value, bool constant)
-// function to define a variable before running the code
-{
-	if (is_declared(name)) error("define_name(): existing variable");
-	var_table.push_back(Variable(name, value, constant));
-	return;
-}
-
-void Symbol_table::set_value(string s, double d)
+void Symbol_table::set(string s, double d)
 // change value of an existing variable
 {
 	for (int i = 0; i < var_table.size(); ++i)
@@ -179,6 +171,14 @@ void Symbol_table::set_value(string s, double d)
 			return;
 		}
 	error("set: undefined name ", s);
+}
+
+void Symbol_table::define_name(string name, double value, bool constant)
+// function to define a variable before running the code
+{
+	if (is_declared(name)) error("define_name(): existing variable");
+	var_table.push_back(Variable(name, value, constant));
+	return;
 }
 
 bool Symbol_table::is_declared(string s)
@@ -246,7 +246,7 @@ double primary()
 				return assignment(t.name);
 			}
 			ts.unget(t2);
-			return names.get_value(t.name);
+			return names.get(t.name);
 		}
 		case square_root:
 		{
@@ -320,7 +320,7 @@ double declaration(bool c = false)
 double assignment(string name) {
 	if (names.is_constant(name)) error("assignment: const variable");
 	double d = expression();
-	names.set_value(name, d);
+	names.set(name, d);
 	return d;
 }
 
