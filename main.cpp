@@ -82,7 +82,7 @@ Token Token_stream::get()
 	cin >> ch;
 	switch (ch) {
 	case '(': case ')':	case '+': case '-':	case '*':
-	case '/': case '%':	case ';': case '=':	case ',':
+	case '/': case '%':	case ';': case '=':	case ',': case '!':
 		return Token(ch);
 	case '.':
 	case '0': case '1': case '2': case '3': case '4':
@@ -217,6 +217,17 @@ double power_get() {
 	error("pow(val1, val2): Bad Input");
 }
 
+int factorial(int factor)
+// calculate factorial of a number
+{
+	if (factor == 0) return 1;
+	int return_value = factor;
+	for (int i = 1; i < factor; ++i) {
+		return_value *= i;
+	}
+	return return_value;
+}
+
 double primary()
 {
 	Token t = ts.get();
@@ -231,7 +242,12 @@ double primary()
 		case '-':
 			return -primary();
 		case number:
+		{
+			Token next = ts.get();
+			if (next.kind == '!') return factorial(t.value);
+			else ts.unget(next);
 			return t.value;
+		}
 		case name:
 		{
 			Token t2 = ts.get();
