@@ -2,10 +2,6 @@
 /*
 	calculator08buggy.cpp
 
-	Helpful comments removed.
-
-	We have inserted 3 bugs that the compiler will catch and 3 that it won't.
-
 	Grammar:
 		Calculation:
 			Statement
@@ -146,56 +142,66 @@ public:
 	Variable(string n, double v, bool c = false) :name(n), value(v), constant(c) { }
 };
 
-vector<Variable> names;
+class Symbol_table {
+public:
+	double get_value(string s);
+	void define_name(string name, double value, bool constant = false);
+	void set_value(string s, double d);
+	bool is_declared(string s);
+	bool is_constant(string s);
 
-bool is_declared(string s);
+private:
+	vector<Variable> var_table;
+};
 
-void define_name(string name, double value, bool constant = false)
-// function to define a variable before running the code
-{
-	if (is_declared(name)) error("define_name(): existing variable");
-	names.push_back(Variable(name, value, constant));
-}
-
-double get_value(string s)
+double Symbol_table::get_value(string s) 
 // return value of an existing variable
 {
-	for (int i = 0; i < names.size(); ++i)
-		if (names[i].name == s) return names[i].value;
+	for (int i = 0; i < var_table.size(); ++i)
+		if (var_table[i].name == s) return var_table[i].value;
 	error("get: undefined name ", s);
 }
 
-void set_value(string s, double d)
+void Symbol_table::define_name(string name, double value, bool constant)
+// function to define a variable before running the code
+{
+	if (is_declared(name)) error("define_name(): existing variable");
+	var_table.push_back(Variable(name, value, constant));
+	return;
+}
+
+void Symbol_table::set_value(string s, double d)
 // change value of an existing variable
 {
-	for (int i = 0; i < names.size(); ++i)
-		if (names[i].name == s) {
-			names[i].value = d;
+	for (int i = 0; i < var_table.size(); ++i)
+		if (var_table[i].name == s) {
+			var_table[i].value = d;
 			return;
 		}
 	error("set: undefined name ", s);
 }
 
-bool is_declared(string s)
+bool Symbol_table::is_declared(string s)
 // return true if a variable is declared
 {
-	for (int i = 0; i < names.size(); ++i)
-		if (names[i].name == s) return true;
+	for (int i = 0; i < var_table.size(); ++i)
+		if (var_table[i].name == s) return true;
 	return false;
 }
 
-bool is_constant(string s)
+bool Symbol_table::is_constant(string s)
 // return true if a variable is declared an it is a constant
 {
 	if (is_declared(s)) {
-		for (int i = 0; i < names.size(); ++i) {
-			if (names[i].name == s) return names[i].constant;
+		for (int i = 0; i < var_table.size(); ++i) {
+			if (var_table[i].name == s) return var_table[i].constant;
 		}
 		return false;
 	}
 	error("is_constant: undefined name");
 }
 
+Symbol_table names;
 Token_stream ts;
 
 double expression();
@@ -240,7 +246,7 @@ double primary()
 				return assignment(t.name);
 			}
 			ts.unget(t2);
-			return get_value(t.name);
+			return names.get_value(t.name);
 		}
 		case square_root:
 		{
@@ -303,18 +309,18 @@ double declaration(bool c = false)
 	Token t = ts.get();
 	if (t.kind != 'a') error("name expected in declaration");
 	string name = t.name;
-	if (is_declared(name)) error(name, " declared twice");
+	if (names.is_declared(name)) error(name, " declared twice");
 	Token t2 = ts.get();
 	if (t2.kind != '=') error("= missing in declaration of ", name);
 	double d = expression();
-	names.push_back(Variable(name, d, c));
+	names.define_name(name, d, c);
 	return d;
 }
 
 double assignment(string name) {
-	if (is_constant(name)) error("assignment: const variable");
+	if (names.is_constant(name)) error("assignment: const variable");
 	double d = expression();
-	set_value(name, d);
+	names.set_value(name, d);
 	return d;
 }
 
@@ -359,8 +365,7 @@ void calculate()
 int main()
 
 try {
-	define_name("pi", 3.14159, true);
-	cout << names[0].name << "\t" << names[0].constant << "\n";
+	names.define_name("pi", 3.14159, true);
 	calculate();
 	return 0;
 }
