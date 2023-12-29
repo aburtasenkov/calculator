@@ -7,6 +7,7 @@
 			Statement
 			Print
 			Quit
+			Help
 			Calculation Statement
 		Statement:
 			Assignment
@@ -16,6 +17,7 @@
 			Name "=" Expression
 		Declaration:
 			"let" Name "=" Expression
+			"const" Name "=" Expression
 		Expression:
 			Term
 			Expression "+" Term
@@ -27,6 +29,7 @@
 			Term "%" Primary
 		Primary:
 			Number
+			Number "!"
 			Variable
 			"(" Expression ")"
 			"sqrt(" Expression ")"
@@ -101,7 +104,7 @@ Token Token_stream::get()
 			if (s == "sqrt") return Token(square_root);
 			if (s == "pow") return Token(power);
 			if (s == "const") return Token(constant);
-			if (s == "H" || s == "h") return Token(help);
+			if (s == "help") return Token(help);
 			return Token(name, s);
 		}
 		if (isspace(ch)) {
