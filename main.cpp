@@ -54,8 +54,6 @@ public:
 };
 
 class Token_stream {
-	bool full;
-	Token buffer;
 public:
 	Token_stream() :full(0), buffer(0) { }
 
@@ -63,6 +61,9 @@ public:
 	void unget(Token t) { buffer = t; full = true; }
 
 	void ignore(char);
+private:
+	bool full;
+	Token buffer;
 };
 
 const char let = 'L';
@@ -87,7 +88,7 @@ Token Token_stream::get()
 	case '.':
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
-	{	
+	{
 		cin.unget();
 		double val;
 		cin >> val;
@@ -97,7 +98,7 @@ Token Token_stream::get()
 		if (isalpha(ch)) { // isalpha(ch) returns true if ch is a character
 			string s;
 			s += ch;
-			while (cin.get(ch) && (isalpha(ch) || isdigit(ch) || ch =='_')) s += ch;
+			while (cin.get(ch) && (isalpha(ch) || isdigit(ch) || ch == '_')) s += ch;
 			cin.unget();
 			if (s == "let") return Token(let);
 			if (s == "quit") return Token(quit);
@@ -147,7 +148,7 @@ private:
 	vector<Variable> var_table;
 };
 
-double Symbol_table::get(string s) 
+double Symbol_table::get(string s)
 // return value of an existing variable
 {
 	for (int i = 0; i < var_table.size(); ++i)
@@ -209,7 +210,7 @@ double power_get() {
 		t = ts.get();
 		if (t.kind == ',') {
 			val2 = narrow_cast<int>(expression(ts));
-			t = ts.get();	
+			t = ts.get();
 			if (t.kind == ')') return pow(val1, val2); // ignore the ")" at the end of function call "pow(val1, val2);"
 			else ts.unget(t);
 		}
@@ -232,43 +233,43 @@ double primary(Token_stream& ts)
 {
 	Token t = ts.get();
 	switch (t.kind) {
-		case '(':
-		{
-			double d = expression(ts);
-			t = ts.get();
-			if (t.kind != ')') error("'(' expected");
-			return d;
+	case '(':
+	{
+		double d = expression(ts);
+		t = ts.get();
+		if (t.kind != ')') error("'(' expected");
+		return d;
+	}
+	case '-':
+		return -primary(ts);
+	case number:
+	{
+		Token next = ts.get();
+		if (next.kind == '!') return factorial(t.value);
+		else ts.unget(next);
+		return t.value;
+	}
+	case name:
+	{
+		Token t2 = ts.get();
+		if (t2.kind == '=') {
+			return assignment(t.name);
 		}
-		case '-':
-			return -primary(ts);
-		case number:
-		{
-			Token next = ts.get();
-			if (next.kind == '!') return factorial(t.value);
-			else ts.unget(next);
-			return t.value;
-		}
-		case name:
-		{
-			Token t2 = ts.get();
-			if (t2.kind == '=') {
-				return assignment(t.name);
-			}
-			ts.unget(t2);
-			return names.get(t.name);
-		}
-		case square_root:
-		{
-			double d = expression(ts);
-			if (d < 0) error("sqrt(n): n should be a positive number");
-			return sqrt(d);
-		}
-		case power:
-		{
-			return power_get();
-		}
-		default:
-			error("primary expected");
+		ts.unget(t2);
+		return names.get(t.name);
+	}
+	case square_root:
+	{
+		double d = expression(ts);
+		if (d < 0) error("sqrt(n): n should be a positive number");
+		return sqrt(d);
+	}
+	case power:
+	{
+		return power_get();
+	}
+	default:
+		error("primary expected");
 	}
 }
 
