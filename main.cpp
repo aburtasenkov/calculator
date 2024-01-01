@@ -259,7 +259,7 @@ double primary(Token_stream& ts)
 		}
 		case square_root:
 		{
-			double d = primary(ts);
+			double d = expression(ts);
 			if (d < 0) error("sqrt(n): n should be a positive number");
 			return sqrt(d);
 		}
