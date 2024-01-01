@@ -197,7 +197,7 @@ bool Symbol_table::is_constant(string s)
 Symbol_table names;
 Token_stream ts;
 
-double expression();
+double expression(Token_stream& ts);
 double assignment(string s);
 
 double power_get() {
@@ -205,10 +205,10 @@ double power_get() {
 	int val2;
 	Token t = ts.get();
 	if (t.kind == '(') {
-		val1 = expression();
+		val1 = expression(ts);
 		t = ts.get();
 		if (t.kind == ',') {
-			val2 = narrow_cast<int>(expression());
+			val2 = narrow_cast<int>(expression(ts));
 			t = ts.get();	
 			if (t.kind == ')') return pow(val1, val2); // ignore the ")" at the end of function call "pow(val1, val2);"
 			else ts.unget(t);
@@ -228,19 +228,19 @@ int factorial(int factor)
 	return return_value;
 }
 
-double primary()
+double primary(Token_stream& ts)
 {
 	Token t = ts.get();
 	switch (t.kind) {
 		case '(':
 		{
-			double d = expression();
+			double d = expression(ts);
 			t = ts.get();
 			if (t.kind != ')') error("'(' expected");
 			return d;
 		}
 		case '-':
-			return -primary();
+			return -primary(ts);
 		case number:
 		{
 			Token next = ts.get();
@@ -259,7 +259,7 @@ double primary()
 		}
 		case square_root:
 		{
-			double d = primary();
+			double d = primary(ts);
 			if (d < 0) error("sqrt(n): n should be a positive number");
 			return sqrt(d);
 		}
@@ -272,17 +272,17 @@ double primary()
 	}
 }
 
-double term()
+double term(Token_stream& ts)
 {
-	double left = primary();
+	double left = primary(ts);
 	while (true) {
 		Token t = ts.get();
 		switch (t.kind) {
 		case '*':
-			left *= primary();
+			left *= primary(ts);
 			break;
 		case '/': {
-			double d = primary();
+			double d = primary(ts);
 			if (d == 0) error("divide by zero");
 			left /= d;
 			break;
@@ -294,17 +294,17 @@ double term()
 	}
 }
 
-double expression()
+double expression(Token_stream& ts)
 {
-	double left = term();
+	double left = term(ts);
 	while (true) {
 		Token t = ts.get();
 		switch (t.kind) {
 		case '+':
-			left += term();
+			left += term(ts);
 			break;
 		case '-':
-			left -= term();
+			left -= term(ts);
 			break;
 		default:
 			ts.unget(t);
@@ -321,14 +321,14 @@ double declaration(bool c = false)
 	if (names.is_declared(name)) error(name, " declared twice");
 	Token t2 = ts.get();
 	if (t2.kind != '=') error("= missing in declaration of ", name);
-	double d = expression();
+	double d = expression(ts);
 	names.define_name(name, d, c);
 	return d;
 }
 
 double assignment(string name) {
 	if (names.is_constant(name)) error("assignment: const variable");
-	double d = expression();
+	double d = expression(ts);
 	names.set(name, d);
 	return d;
 }
@@ -343,7 +343,7 @@ double statement()
 		return declaration(true);
 	default:
 		ts.unget(t);
-		return expression();
+		return expression(ts);
 	}
 }
 
