@@ -42,6 +42,16 @@
 #include "std_lib_facilities.h"
 #include <math.h>
 
+const char let = 'L';
+const char quit = 'Q';
+const char print = ';';
+const char number = '8';
+const char name = 'a';
+const char square_root = '?';
+const char power = '&';
+const char constant = 'C';
+const char help = 'H';
+
 class Token {
 public:
 	char kind;
@@ -65,15 +75,18 @@ private:
 	istream& stream;
 };
 
-const char let = 'L';
-const char quit = 'Q';
-const char print = ';';
-const char number = '8';
-const char name = 'a';
-const char square_root = '?';
-const char power = '&';
-const char constant = 'C';
-const char help = 'H';
+void Token_stream::ignore(char c)
+{
+	if (full && c == buffer.kind) {
+		full = false;
+		return;
+	}
+	full = false;
+
+	char ch;
+	while (stream >> ch)
+		if (ch == c) return;
+}
 
 Token Token_stream::get()
 {
@@ -114,19 +127,6 @@ Token Token_stream::get()
 		}
 		error("Bad token");
 	}
-}
-
-void Token_stream::ignore(char c)
-{
-	if (full && c == buffer.kind) {
-		full = false;
-		return;
-	}
-	full = false;
-
-	char ch;
-	while (stream >> ch)
-		if (ch == c) return;
 }
 
 class Variable {
@@ -199,7 +199,7 @@ bool Symbol_table::is_constant(string s)
 Symbol_table names;
 
 double expression(Token_stream& ts);
-double assignment(string s);
+double assignment(Token_stream& ts, string s);
 
 double power_get(Token_stream& ts) {
 	double val1;
@@ -253,7 +253,7 @@ double primary(Token_stream& ts)
 	{
 		Token t2 = ts.get();
 		if (t2.kind == '=') {
-			return assignment(t.name);
+			return assignment(ts, t.name);
 		}
 		ts.putback(t2);
 		return names.get(t.name);
