@@ -216,7 +216,7 @@ double power_get(Token_stream& ts) {
 	error("pow(val1, val2): Bad Input");
 }
 
-int factorial(int factor)
+double factorial(double factor)
 // calculate factorial of a number
 {
 	if (factor == 0) return 1;
