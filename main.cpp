@@ -56,7 +56,7 @@ class Token_stream {
 public:
 	Token_stream(istream& is) :full(0), buffer(0), stream(is) { }
 	Token get();
-	void unget(Token t) { buffer = t; full = true; }
+	void putback(Token t) { buffer = t; full = true; }
 
 	void ignore(char);
 private:
@@ -90,7 +90,7 @@ Token Token_stream::get()
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
 	{
-		stream.unget();
+		stream.putback(ch);
 		double val;
 		stream >> val;
 		return Token(number, val);
@@ -100,7 +100,7 @@ Token Token_stream::get()
 			string s;
 			s += ch;
 			while (stream.get(ch) && (isalpha(ch) || isdigit(ch) || ch == '_')) s += ch;
-			stream.unget();
+			stream.putback(ch);
 			if (s == "let") return Token(let);
 			if (s == "quit") return Token(quit);
 			if (s == "sqrt") return Token(square_root);
@@ -212,7 +212,7 @@ double power_get(Token_stream& ts) {
 			val2 = narrow_cast<int>(expression(ts));
 			t = ts.get();
 			if (t.kind == ')') return pow(val1, val2); // ignore the ")" at the end of function call "pow(val1, val2);"
-			else ts.unget(t);
+			else ts.putback(t);
 		}
 	}
 	error("pow(val1, val2): Bad Input");
@@ -246,7 +246,7 @@ double primary(Token_stream& ts)
 	{
 		Token next = ts.get();
 		if (next.kind == '!') return factorial(t.value);
-		else ts.unget(next);
+		else ts.putback(next);
 		return t.value;
 	}
 	case name:
@@ -255,7 +255,7 @@ double primary(Token_stream& ts)
 		if (t2.kind == '=') {
 			return assignment(t.name);
 		}
-		ts.unget(t2);
+		ts.putback(t2);
 		return names.get(t.name);
 	}
 	case square_root:
@@ -289,7 +289,7 @@ double term(Token_stream& ts)
 			break;
 		}
 		default:
-			ts.unget(t);
+			ts.putback(t);
 			return left;
 		}
 	}
@@ -308,7 +308,7 @@ double expression(Token_stream& ts)
 			left -= term(ts);
 			break;
 		default:
-			ts.unget(t);
+			ts.putback(t);
 			return left;
 		}
 	}
@@ -343,7 +343,7 @@ double statement(Token_stream& ts)
 	case constant:
 		return declaration(ts, true);
 	default:
-		ts.unget(t);
+		ts.putback(t);
 		return expression(ts);
 	}
 }
@@ -367,7 +367,7 @@ void calculate(Token_stream& ts)
 			<< "I can read these operators:\t+\t-\t/\t*\t(\t)\n"
 			<< "I can execute these functions: pow(x,i)\tsqrt(x)\n";
 		else {
-			ts.unget(t);
+			ts.putback(t);
 			cout << result << statement(ts) << endl;
 		}
 	}
