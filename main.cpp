@@ -55,7 +55,7 @@ public:
 
 class Token_stream {
 public:
-	Token_stream() :full(0), buffer(0) { }
+	Token_stream(istream& is) :full(0), buffer(0), stream(is) { }
 	Token get();
 	void unget(Token t) { buffer = t; full = true; }
 
@@ -63,6 +63,7 @@ public:
 private:
 	bool full;
 	Token buffer;
+	istream& stream;
 };
 
 const char let = 'L';
@@ -79,7 +80,7 @@ Token Token_stream::get()
 {
 	if (full) { full = false; return buffer; }
 	char ch;
-	cin >> ch;
+	stream >> ch;
 	switch (ch) {
 	case '(': case ')':	case '+': case '-':	case '*':
 	case '/': case '%':	case ';': case '=':	case ',': case '!':
@@ -88,17 +89,17 @@ Token Token_stream::get()
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
 	{
-		cin.unget();
+		stream.unget();
 		double val;
-		cin >> val;
+		stream >> val;
 		return Token(number, val);
 	}
 	default:
 		if (isalpha(ch)) { // isalpha(ch) returns true if ch is a character
 			string s;
 			s += ch;
-			while (cin.get(ch) && (isalpha(ch) || isdigit(ch) || ch == '_')) s += ch;
-			cin.unget();
+			while (stream.get(ch) && (isalpha(ch) || isdigit(ch) || ch == '_')) s += ch;
+			stream.unget();
 			if (s == "let") return Token(let);
 			if (s == "quit") return Token(quit);
 			if (s == "sqrt") return Token(square_root);
@@ -123,7 +124,7 @@ void Token_stream::ignore(char c)
 	full = false;
 
 	char ch;
-	while (cin >> ch)
+	while (stream >> ch)
 		if (ch == c) return;
 }
 
@@ -379,7 +380,7 @@ int main()
 
 try {
 	names.define_name("pi", 3.14159, true);
-	Token_stream ts;
+	Token_stream ts{ cin };
 	calculate(ts);
 	return 0;
 }
