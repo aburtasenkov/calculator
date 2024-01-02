@@ -39,7 +39,6 @@
 		Variable:
 			Name
 */
-
 #include "std_lib_facilities.h"
 #include <math.h>
 
@@ -50,7 +49,7 @@ public:
 	string name;
 	Token(char ch) :kind(ch), value(0) { }
 	Token(char ch, double val) :kind(ch), value(val) { }
-	Token(char ch, string s) :kind(ch), name(s) { }
+	Token(char ch, string s) :kind(ch), value(0), name(s) { }
 };
 
 class Token_stream {
@@ -79,8 +78,10 @@ const char help = 'H';
 Token Token_stream::get()
 {
 	if (full) { full = false; return buffer; }
+
 	char ch;
 	stream >> ch;
+
 	switch (ch) {
 	case '(': case ')':	case '+': case '-':	case '*':
 	case '/': case '%':	case ';': case '=':	case ',': case '!':
