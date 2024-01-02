@@ -56,7 +56,6 @@ public:
 class Token_stream {
 public:
 	Token_stream() :full(0), buffer(0) { }
-
 	Token get();
 	void unget(Token t) { buffer = t; full = true; }
 
@@ -140,7 +139,7 @@ class Symbol_table {
 public:
 	double get(string s);
 	void set(string s, double d);
-	void define_name(string name, double value, bool constant = false);
+	void define_name(string name, double value, bool constant);
 	bool is_declared(string s);
 	bool is_constant(string s);
 
@@ -167,7 +166,7 @@ void Symbol_table::set(string s, double d)
 	error("set: undefined name ", s);
 }
 
-void Symbol_table::define_name(string name, double value, bool constant)
+void Symbol_table::define_name(string name, double value, bool constant = false)
 // function to define a variable before running the code
 {
 	if (is_declared(name)) error("define_name(): existing variable");
@@ -196,12 +195,11 @@ bool Symbol_table::is_constant(string s)
 }
 
 Symbol_table names;
-Token_stream ts;
 
 double expression(Token_stream& ts);
 double assignment(string s);
 
-double power_get() {
+double power_get(Token_stream& ts) {
 	double val1;
 	int val2;
 	Token t = ts.get();
@@ -266,7 +264,7 @@ double primary(Token_stream& ts)
 	}
 	case power:
 	{
-		return power_get();
+		return power_get(ts);
 	}
 	default:
 		error("primary expected");
@@ -314,7 +312,7 @@ double expression(Token_stream& ts)
 	}
 }
 
-double declaration(bool c = false)
+double declaration(Token_stream& ts, bool c = false)
 {
 	Token t = ts.get();
 	if (t.kind != 'a') error("name expected in declaration");
@@ -327,28 +325,28 @@ double declaration(bool c = false)
 	return d;
 }
 
-double assignment(string name) {
+double assignment(Token_stream& ts, string name) {
 	if (names.is_constant(name)) error("assignment: const variable");
 	double d = expression(ts);
 	names.set(name, d);
 	return d;
 }
 
-double statement()
+double statement(Token_stream& ts)
 {
 	Token t = ts.get();
 	switch (t.kind) {
 	case let:
-		return declaration();
+		return declaration(ts);
 	case constant:
-		return declaration(true);
+		return declaration(ts, true);
 	default:
 		ts.unget(t);
 		return expression(ts);
 	}
 }
 
-void clean_up_mess()
+void clean_up_mess(Token_stream& ts)
 {
 	ts.ignore(print);
 }
@@ -356,7 +354,7 @@ void clean_up_mess()
 const string prompt = "> ";
 const string result = "= ";
 
-void calculate()
+void calculate(Token_stream& ts)
 {
 	while (true) try {
 		cout << prompt;
@@ -368,12 +366,12 @@ void calculate()
 			<< "I can execute these functions: pow(x,i)\tsqrt(x)\n";
 		else {
 			ts.unget(t);
-			cout << result << statement() << endl;
+			cout << result << statement(ts) << endl;
 		}
 	}
 	catch (runtime_error& e) {
 		cerr << e.what() << endl;
-		clean_up_mess();
+		clean_up_mess(ts);
 	}
 }
 
@@ -381,7 +379,8 @@ int main()
 
 try {
 	names.define_name("pi", 3.14159, true);
-	calculate();
+	Token_stream ts;
+	calculate(ts);
 	return 0;
 }
 catch (exception& e) {
