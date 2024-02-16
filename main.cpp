@@ -1,4 +1,3 @@
-
 /*
 	calculator08buggy.cpp
 
@@ -28,6 +27,7 @@
 			Term "/" Primary
 			Term "%" Primary
 		Primary:
+			Roman Numeral
 			Number
 			Number "!"
 			Variable
@@ -40,6 +40,7 @@
 			Name
 */
 #include "std_lib_facilities.h"
+#include "Roman.h"
 #include <math.h>
 
 const char let = 'L';
@@ -51,15 +52,18 @@ const char square_root = '?';
 const char power = '&';
 const char constant = 'C';
 const char help = 'H';
+const char roman_number = 'R';
 
 class Token {
 public:
 	char kind;
 	double value;
 	string name;
+	Roman::Roman_int roman;
 	Token(char ch) :kind(ch), value(0) { }
 	Token(char ch, double val) :kind(ch), value(val) { }
 	Token(char ch, string s) :kind(ch), value(0), name(s) { }
+	Token(char ch, Roman::Roman_int r) :kind(ch), roman(r) {	}
 };
 
 class Token_stream {
@@ -87,6 +91,8 @@ void Token_stream::ignore(char c)
 	while (stream >> ch)
 		if (ch == c) return;
 }
+
+bool is_roman_numeral(string);
 
 Token Token_stream::get()
 {
@@ -120,6 +126,7 @@ Token Token_stream::get()
 			if (s == "pow") return Token(power);
 			if (s == "const") return Token(constant);
 			if (s == "help") return Token(help);
+			if (is_roman_numeral(s)) return Token(roman_number, Roman::string_to_roman(s));
 			return Token(name, s);
 		}
 		if (isspace(ch)) {
@@ -196,6 +203,28 @@ bool Symbol_table::is_constant(string s)
 	error("is_constant: undefined name");
 }
 
+vector<char> roman_numeral_tbl{ 'M', 'D', 'C', 'L', 'X', 'V', 'I' };
+
+bool is_roman_numeral(string s)
+{
+	for (const char& ch : s)
+	{
+		bool status = false;
+
+		for (const char& roman_numeral : roman_numeral_tbl)
+		{
+			if (ch == roman_numeral)
+			{
+				status = true;
+				break;
+			}
+		}
+
+		if (!status) return false;
+	}
+	return true;
+}
+
 Symbol_table names;
 
 double expression(Token_stream& ts);
@@ -248,6 +277,13 @@ double primary(Token_stream& ts)
 		if (next.kind == '!') return factorial(t.value);
 		else ts.putback(next);
 		return t.value;
+	}
+	case roman_number:
+	{
+		Token next = ts.get();
+		if (next.kind == '!') return factorial(t.roman.as_int());
+		else ts.putback(next);
+		return t.roman.as_int();
 	}
 	case name:
 	{
@@ -378,7 +414,6 @@ void calculate(Token_stream& ts)
 }
 
 int main()
-
 try {
 	names.define_name("pi", 3.14159, true);
 	Token_stream ts{ cin };
