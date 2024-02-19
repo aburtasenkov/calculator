@@ -9,6 +9,8 @@
 			Help
 			Calculation Statement
 		Statement:
+			"from" Filename
+			"to" Filename
 			Assignment
 			Declaration
 			Expression
@@ -38,6 +40,8 @@
 			Floating-Point Value
 		Variable:
 			Name
+		Filename:
+			String
 */
 #include "std_lib_facilities.h"
 #include "Roman.h"
@@ -53,6 +57,10 @@ const char power = '&';
 const char constant = 'C';
 const char help = 'H';
 const char roman_number = 'R';
+const char input_keyword = 'I';
+const char output_keyword = 'O';
+const char filename = 'F';
+const char end_of_file = 'E';
 
 class Token {
 public:
@@ -101,11 +109,12 @@ Token Token_stream::get()
 	char ch;
 	stream >> ch;
 
+	if (stream.eof()) return Token(end_of_file);
+
 	switch (ch) {
 	case '(': case ')':	case '+': case '-':	case '*':
-	case '/': case '%':	case ';': case '=':	case ',': case '!':
+	case '/': case '%':	case ';': case '=':	case ',': case '!': case'_':
 		return Token(ch);
-	case '.':
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
 	{
@@ -118,7 +127,7 @@ Token Token_stream::get()
 		if (isalpha(ch)) { // isalpha(ch) returns true if ch is a character
 			string s;
 			s += ch;
-			while (stream.get(ch) && (isalpha(ch) || isdigit(ch) || ch == '_')) s += ch;
+			while (stream.get(ch) && (isalpha(ch) || isdigit(ch))) s += ch;
 			stream.putback(ch);
 			if (s == "let") return Token(let);
 			if (s == "quit") return Token(quit);
@@ -127,6 +136,17 @@ Token Token_stream::get()
 			if (s == "const") return Token(constant);
 			if (s == "help") return Token(help);
 			if (is_roman_numeral(s)) return Token(roman_number, Roman::string_to_roman(s));
+			if (s == "from")
+			{
+				if (stream.get(ch) && isspace(ch))
+				{
+					string filename;
+					while (stream.get(ch) && (isalpha(ch) || isdigit(ch) || ch == '.')) filename += ch;
+					stream.putback(ch); // putback ';'
+					return Token(input_keyword, filename);
+				}
+			}
+			if (s == "to") return Token(output_keyword);
 			return Token(name, s);
 		}
 		if (isspace(ch)) {
@@ -395,16 +415,23 @@ const string result = "= ";
 void calculate(Token_stream& ts)
 {
 	while (true) try {
-		cout << prompt;
 		Token t = ts.get();
-		while (t.kind == print) t = ts.get();
-		if (t.kind == quit) return;
-		if (t.kind == help) cout << "This is me, calculator!\n"
+		while (t.kind == print)	t = ts.get();
+		if (t.kind == end_of_file) return;
+		else if (t.kind == quit) return;
+		else if (t.kind == help) cout << "This is me, calculator!\n"
 			<< "I can read these operators:\t+\t-\t/\t*\t(\t)\n"
 			<< "I can execute these functions: pow(x,i)\tsqrt(x)\n";
+		else if (t.kind == input_keyword)
+		{
+			ifstream ifs{ t.name };
+			Token_stream file_input{ ifs };
+			t = ts.get();
+			if (t.kind == print) calculate(file_input);
+		}
 		else {
 			ts.putback(t);
-			cout << result << statement(ts) << endl;
+			cout << result << statement(ts) << endl << prompt;
 		}
 	}
 	catch (runtime_error& e) {
