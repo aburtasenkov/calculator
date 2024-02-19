@@ -409,7 +409,7 @@ void clean_up_mess(Token_stream& ts)
 	ts.ignore(print);
 }
 
-const string prompt = "> ";
+const string prompt = "> "; // unused
 const string result = "= ";
 
 void calculate(Token_stream& ts)
@@ -418,7 +418,7 @@ void calculate(Token_stream& ts)
 		Token t = ts.get();
 		while (t.kind == print)	t = ts.get();
 		if (t.kind == end_of_file) return;
-		else if (t.kind == quit) return;
+		if (t.kind == quit) return;
 		else if (t.kind == help) cout << "This is me, calculator!\n"
 			<< "I can read these operators:\t+\t-\t/\t*\t(\t)\n"
 			<< "I can execute these functions: pow(x,i)\tsqrt(x)\n";
@@ -427,11 +427,14 @@ void calculate(Token_stream& ts)
 			ifstream ifs{ t.name };
 			Token_stream file_input{ ifs };
 			t = ts.get();
-			if (t.kind == print) calculate(file_input);
+			if (t.kind == print) 
+			{ 
+				calculate(file_input); 
+			}
 		}
 		else {
 			ts.putback(t);
-			cout << result << statement(ts) << endl << prompt;
+			cout << result << statement(ts) << endl;
 		}
 	}
 	catch (runtime_error& e) {
