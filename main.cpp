@@ -417,8 +417,12 @@ void calculate(Token_stream& ts)
 		if (t.kind == end_of_file) return;
 		if (t.kind == quit) return;
 		else if (t.kind == help) cout << "This is me, calculator!\n"
-			<< "I can read these operators:\t+\t-\t/\t*\t(\t)\n"
-			<< "I can execute these functions: pow(x,i)\tsqrt(x)\n";
+			<< "Possible values - Decimal Numbers and Roman Numerals"
+			<< "Possible operators:\t+\t-\t/\t*\t(\t)\t!\n"
+			<< "Functions: pow(x,i)\tsqrt(x)\n"
+			<< "Declaration of a variable: let *NAME* *VALUE*\n"
+			<< "                 constant: const *NAME* *VALUE*\n"
+			<< "Assignment of existing variable: *NAME* = *VALUE*\n";
 		else if (t.kind == input_keyword)
 		{
 			ifstream ifs{ t.name };
