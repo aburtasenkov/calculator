@@ -417,7 +417,7 @@ void calculate(Token_stream& ts)
 		if (t.kind == end_of_file) return;
 		if (t.kind == quit) return;
 		else if (t.kind == help) cout << "This is me, calculator!\n"
-			<< "Possible values - Decimal Numbers and Roman Numerals"
+			<< "Possible values - Decimal Numbers and Roman Numerals\n"
 			<< "Possible operators:\t+\t-\t/\t*\t(\t)\t!\n"
 			<< "Functions: pow(x,i)\tsqrt(x)\n"
 			<< "Declaration of a variable: let *NAME* *VALUE*\n"
