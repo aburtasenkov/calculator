@@ -10,7 +10,6 @@
 			Calculation Statement
 		Statement:
 			"from" Filename
-			"to" Filename
 			Assignment
 			Declaration
 			Expression
@@ -58,7 +57,6 @@ const char constant = 'C';
 const char help = 'H';
 const char roman_number = 'R';
 const char input_keyword = 'I';
-const char output_keyword = 'O';
 const char filename = 'F';
 const char end_of_file = 'E';
 
@@ -146,7 +144,6 @@ Token Token_stream::get()
 					return Token(input_keyword, filename);
 				}
 			}
-			if (s == "to") return Token(output_keyword);
 			return Token(name, s);
 		}
 		if (isspace(ch)) {
@@ -427,9 +424,9 @@ void calculate(Token_stream& ts)
 			ifstream ifs{ t.name };
 			Token_stream file_input{ ifs };
 			t = ts.get();
-			if (t.kind == print) 
-			{ 
-				calculate(file_input); 
+			if (t.kind == print)
+			{
+				calculate(file_input);
 			}
 		}
 		else {
